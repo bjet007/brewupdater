@@ -21,6 +21,9 @@ type model struct {
 	ticked    []bool
 	cursor    int
 	phase     phase
+	// height is the terminal's height, 0 until the first window size arrives; offset is the first row drawn.
+	height int
+	offset int
 }
 
 func newModel(p plan.Plan) *model {
@@ -44,6 +47,12 @@ func newModel(p plan.Plan) *model {
 func (m *model) Init() tea.Cmd { return nil }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if size, ok := msg.(tea.WindowSizeMsg); ok {
+		m.height = size.Height
+		m.scroll()
+		return m, nil
+	}
+
 	key, ok := msg.(tea.KeyPressMsg)
 	if !ok || m.phase != phaseSelecting {
 		return m, nil
@@ -67,7 +76,36 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case "a":
 		m.toggleAll()
 	}
+	m.scroll()
 	return m, nil
+}
+
+// chromeLines is the title, its blank line, the blank line before the help and the help.
+const chromeLines = 4
+
+// windowSize is how many rows fit on screen along with the title, help and separator. It is every row until the
+// terminal's height is known.
+func (m *model) windowSize() int {
+	if m.height == 0 {
+		return len(m.rows)
+	}
+	chrome := chromeLines
+	if m.favorites > 0 && m.favorites < len(m.rows) {
+		chrome++
+	}
+	return min(max(m.height-chrome, 1), len(m.rows))
+}
+
+// scroll moves the window just enough to keep the cursor in it.
+func (m *model) scroll() {
+	n := m.windowSize()
+	if m.cursor < m.offset {
+		m.offset = m.cursor
+	}
+	if m.cursor >= m.offset+n {
+		m.offset = m.cursor - n + 1
+	}
+	m.offset = min(max(m.offset, 0), len(m.rows)-n)
 }
 
 // toggleAll ticks every selectable row, or unticks them all when they already are.

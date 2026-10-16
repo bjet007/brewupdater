@@ -3,8 +3,10 @@ package checklist_test
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -180,6 +182,154 @@ func TestView(t *testing.T) {
 			want, err := os.ReadFile(path)
 			require.NoError(t, err)
 			assert.Equal(t, string(want), got)
+		})
+	}
+}
+
+// longPlan's rows, in display order: node, kubectl (pinned), then pkg01 to pkg10.
+var longPlan = func() plan.Plan {
+	p := plan.Plan{Favorites: fullPlan.Favorites}
+	for i := 1; i <= 10; i++ {
+		name := fmt.Sprintf("pkg%02d", i)
+		p.Others = append(p.Others, plan.Row{Package: plan.Package{Name: name, Kind: plan.KindFormula, Installed: "1", Latest: "2"}})
+	}
+	return p
+}()
+
+var rowName = regexp.MustCompile(`(\S+)\s+\[(?:formula|cask)\]`)
+
+func TestViewport(t *testing.T) {
+	tests := map[string]struct {
+		height     int
+		keys       []string
+		resizeTo   int
+		wantRows   []string
+		wantCursor string
+		wantHelp   string
+		wantTicked []string
+	}{
+		"unknown height draws every row": {
+			wantRows: []string{
+				"node", "kubectl", "pkg01", "pkg02", "pkg03", "pkg04", "pkg05", "pkg06", "pkg07", "pkg08", "pkg09", "pkg10",
+			},
+			wantCursor: "node",
+			wantTicked: []string{"node"},
+		},
+		"window starts at the top": {
+			height:     9,
+			wantRows:   []string{"node", "kubectl", "pkg01", "pkg02"},
+			wantCursor: "node",
+			wantHelp:   "1-4 of 12",
+			wantTicked: []string{"node"},
+		},
+		"down past the window scrolls one row": {
+			height:     9,
+			keys:       []string{"down", "down", "down", "down"},
+			wantRows:   []string{"kubectl", "pkg01", "pkg02", "pkg03"},
+			wantCursor: "pkg03",
+			wantHelp:   "2-5 of 12",
+			wantTicked: []string{"node"},
+		},
+		"up past the window scrolls back": {
+			height:     9,
+			keys:       []string{"down", "down", "down", "down", "down", "up", "up", "up", "up", "up"},
+			wantRows:   []string{"node", "kubectl", "pkg01", "pkg02"},
+			wantCursor: "node",
+			wantHelp:   "1-4 of 12",
+			wantTicked: []string{"node"},
+		},
+		"space ticks the row under the cursor once scrolled": {
+			height:     9,
+			keys:       []string{"down", "down", "down", "down", "down", "down", "space"},
+			wantRows:   []string{"pkg02", "pkg03", "pkg04", "pkg05"},
+			wantCursor: "pkg05",
+			wantHelp:   "4-7 of 12",
+			wantTicked: []string{"node", "pkg05"},
+		},
+		"shrinking the terminal keeps the cursor on screen": {
+			height:     40,
+			keys:       []string{"down", "down", "down", "down", "down", "down", "down", "down", "down", "down", "down"},
+			resizeTo:   9,
+			wantRows:   []string{"pkg07", "pkg08", "pkg09", "pkg10"},
+			wantCursor: "pkg10",
+			wantHelp:   "9-12 of 12",
+			wantTicked: []string{"node"},
+		},
+		"growing the terminal shows the rows above": {
+			height:   9,
+			keys:     []string{"down", "down", "down", "down", "down", "down", "down", "down", "down", "down", "down"},
+			resizeTo: 40,
+			wantRows: []string{
+				"node", "kubectl", "pkg01", "pkg02", "pkg03", "pkg04", "pkg05", "pkg06", "pkg07", "pkg08", "pkg09", "pkg10",
+			},
+			wantCursor: "pkg10",
+			wantTicked: []string{"node"},
+		},
+		"a ticks rows outside the window": {
+			height:     9,
+			keys:       []string{"down", "down", "down", "down", "down", "down", "a"},
+			wantRows:   []string{"pkg02", "pkg03", "pkg04", "pkg05"},
+			wantCursor: "pkg05",
+			wantHelp:   "4-7 of 12",
+			wantTicked: []string{
+				"node", "pkg01", "pkg02", "pkg03", "pkg04", "pkg05", "pkg06", "pkg07", "pkg08", "pkg09", "pkg10",
+			},
+		},
+		"tiny terminal still draws the cursor row": {
+			height:     6,
+			keys:       []string{"down", "down"},
+			wantRows:   []string{"pkg01"},
+			wantCursor: "pkg01",
+			wantHelp:   "3-3 of 12",
+			wantTicked: []string{"node"},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			model := checklist.NewModel(longPlan)
+			if tc.height > 0 {
+				model, _ = model.Update(tea.WindowSizeMsg{Width: 80, Height: tc.height})
+			}
+			model = tuitest.DriveForm(t, model, tc.keys...)
+			if tc.resizeTo > 0 {
+				model, _ = model.Update(tea.WindowSizeMsg{Width: 80, Height: tc.resizeTo})
+			}
+			lines := strings.Split(ansi.Strip(tuitest.Content(model)), "\n")
+
+			var rows []string
+			var cursor string
+			for _, l := range lines {
+				match := rowName.FindStringSubmatch(l)
+				if match == nil {
+					continue
+				}
+				rows = append(rows, match[1])
+				if strings.HasPrefix(l, ">") {
+					cursor = match[1]
+				}
+			}
+			got, _ := checklist.Outcome(model)
+			ticked := make([]string, 0, len(got))
+			for _, pkg := range got {
+				ticked = append(ticked, pkg.Name)
+			}
+
+			assert.Equal(t, tc.wantRows, rows)
+			assert.Equal(t, tc.wantCursor, cursor)
+			assert.Equal(t, tc.wantTicked, ticked)
+			height := tc.height
+			if tc.resizeTo > 0 {
+				height = tc.resizeTo
+			}
+			if height > 0 {
+				assert.LessOrEqual(t, len(lines), height)
+			}
+			if tc.wantHelp == "" {
+				assert.NotContains(t, lines[len(lines)-1], " of ")
+			} else {
+				assert.True(t, strings.HasPrefix(lines[len(lines)-1], tc.wantHelp+" · "), lines[len(lines)-1])
+			}
 		})
 	}
 }
