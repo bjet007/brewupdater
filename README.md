@@ -70,7 +70,7 @@ go tool golangci-lint run ./...
 go test ./...
 ```
 
-Releases are cut by pushing a `v*` tag; GoReleaser publishes the binaries and updates the cask in [bjet007/homebrew-tap](https://github.com/bjet007/homebrew-tap).
+Releases are automatic: every push to `master` computes the next version from the [Conventional Commits](https://www.conventionalcommits.org) since the last tag with [svu](https://github.com/caarlos0/svu) (`fix` → patch, `feat` → minor, `!` or `BREAKING CHANGE` → major, kept on `v0.x` until a manual `v1.0.0` tag). If there is a bump, the workflow tags it, and GoReleaser publishes the binaries and updates the cask in [bjet007/homebrew-tap](https://github.com/bjet007/homebrew-tap). Other commit types don't release. Pushing a `v*` tag by hand still releases that version. PRs are squash-merged, so the PR title is the commit that counts.
 
 ## License
 

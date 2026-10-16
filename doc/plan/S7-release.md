@@ -57,7 +57,7 @@ homebrew_casks:
 
 ## Versioning
 
-Tags are created manually for now (`git tag v0.1.0 && git push origin v0.1.0`). semantic-release, as used on the team, is a possible follow-up. The Conventional Commits from the earlier sessions make it straightforward to adopt.
+`v0.1.0` was tagged manually. Since then, `release.yml` also runs on every push to `master`: `go tool svu next --v0` computes the next version from the Conventional Commits since the last tag, and when it differs from `svu current` the job tags it and runs GoReleaser in the same job (a tag pushed with `GITHUB_TOKEN` doesn't trigger another workflow). Manual `v*` tags still release.
 
 ## Verification (instead of unit tests)
 
