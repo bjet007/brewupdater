@@ -10,7 +10,7 @@ The work is split into sessions. Each session is self-contained: start a fresh C
 2. Branch from an up-to-date `master` as `<session>_<slug>`, e.g. `S1_plan-ordering`. S0 creates `master` itself.
 3. Implement the session with the TDD loop below. Commit (Conventional Commits) only when the user asks, after showing the diff.
 4. Review the branch against `master` with `/current-mr-check`. Fix the findings that matter and re-run the checks.
-5. Push the branch and open a GitHub PR to `master` (`gh pr create`). CI (lint and test) must be green; S0 sets this up as a required check.
+5. Push the branch and open a GitHub PR to `master` (`gh pr create`). CI (lint and test) must be green. It's a required check where branch protection is available; while the repo is private on a free plan, check it by hand before merging.
 6. Merge the PR, pull `master` locally, and only then start the next session.
 
 | # | File | Delivers |

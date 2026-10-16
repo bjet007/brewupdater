@@ -7,9 +7,10 @@
 ## Prerequisites (manual, done by the user)
 
 1. Make `bjet007/brewupdater` public (`gh repo edit bjet007/brewupdater --visibility public --accept-visibility-change-consequences`). `brew install` downloads release assets anonymously, so a private repo doesn't work.
-2. Create the public GitHub repo `bjet007/homebrew-tap` (it can start empty).
-3. Create a fine-grained PAT with **Contents: read/write** on `homebrew-tap` only.
-4. Add it to the `brewupdater` repo secrets as `HOMEBREW_TAP_GITHUB_TOKEN`.
+2. Turn on branch protection for `master`, requiring `lint-test` (the S0 step-13 command).
+3. Create the public GitHub repo `bjet007/homebrew-tap` (it can start empty).
+4. Create a fine-grained PAT with **Contents: read/write** on `homebrew-tap` only.
+5. Add it to the `brewupdater` repo secrets as `HOMEBREW_TAP_GITHUB_TOKEN`.
 
 ## `.goreleaser.yaml` (GoReleaser v2)
 

@@ -13,4 +13,4 @@ When working on a plan session, also read its `doc/plan/S<n>-*.md` file and stay
 ## Conventions
 
 Code, test, lint, comment and commit conventions are in the *Conventions* section of `doc/plan/README.md`.
-They follow the OD team guidelines (`go.md`, `code-comments.md`, `commit-and-mr.md`), adapted for a personal GitHub project.
+They are adapted from the OD team guidelines in the local team-docs clone (`/Users/bjean/Documents/workspace/ssa/orbit-determination/team-docs/guideline/`); the README section is the source of truth here.

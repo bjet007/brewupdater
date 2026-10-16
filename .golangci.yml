@@ -78,7 +78,6 @@ formatters:
         - standard
         - default
         - prefix(github.com/bjet007)
-        - localmodule
         - dot
       no-inline-comments: true
       no-prefix-comments: true
