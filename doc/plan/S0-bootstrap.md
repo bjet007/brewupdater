@@ -9,9 +9,9 @@
 1. `git init -b master` (the directory isn't a repo yet). Commit the existing `CONTEXT.md` and `doc/plan/` on `master` as `docs: add context and implementation plan`.
 2. Create the GitHub repo and push `master`. Confirm with the user before running this, because it publishes the repo:
    ```bash
-   gh repo create bjet007/brewupdater --public --source . --push
+   gh repo create bjet007/brewupdater --private --source . --push
    ```
-   It must be public so that `brew install` can download release assets later (S7).
+   The repo stays private until it's ready to share. It must become public before the first release (S7).
 3. Branch `S0_bootstrap` for the rest of this session.
 4. `go mod init github.com/bjet007/brewupdater` and set `go 1.26`.
 5. Tool dependencies, added as `tool` directives in `go.mod`:
@@ -42,6 +42,7 @@
      -F enforce_admins=false -F required_pull_request_reviews=null -F restrictions=null
    ```
    Use the job name from `ci.yml`. Confirm with the user first.
+   Branch protection on a **private** repo needs GitHub Pro. On a free plan, skip this step and treat a green CI run as a manual merge gate until the repo goes public. S7 turns protection on.
 
 ## Tests
 
@@ -49,7 +50,7 @@ Nothing to test-drive yet. Add one trivial test only if `golangci-lint` or CI ne
 
 ## Done when
 
-- `go tool golangci-lint fmt ./...`, `go tool golangci-lint run ./...` and `go test ./...` all pass.
+- `go tool golangci-lint fmt ./...`, `go tool golangci-lint run ./...` and `go test ./...` all pass. CI only runs `run`, which in v2 also reports formatter diffs.
 - `go tool mockery` is installed. With an empty `packages:` map it exits with "no packages specified in config", which is expected; the first real run happens in S4.
 - `go build ./cmd/brewupdater` succeeds.
 - The CI run on the S0 PR is green, `/current-mr-check` has been addressed, and the PR is merged into `master`.

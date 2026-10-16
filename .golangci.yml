@@ -1,0 +1,85 @@
+version: "2"
+
+linters:
+  default: none
+  enable:
+    - asciicheck
+    - bodyclose
+    - contextcheck
+    - dogsled
+    - dupl
+    - errcheck
+    - errorlint
+    - exhaustive
+    - goconst
+    - gocyclo
+    - goprintffuncname
+    - gosec
+    - govet
+    - ineffassign
+    - lll
+    - makezero
+    - misspell
+    - mnd
+    - nakedret
+    - nolintlint
+    - prealloc
+    - revive
+    - rowserrcheck
+    - staticcheck
+    - testifylint
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+  settings:
+    lll:
+      line-length: 140
+    errcheck:
+      check-blank: true
+    testifylint:
+      enable-all: true
+
+  exclusions:
+    generated: lax
+    presets:
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - source: '^//go:generate '
+        linters:
+          - lll
+      - path: _test\.go$
+        linters:
+          - dupl
+          - errcheck
+          - gocyclo
+          - gosec
+          - goconst
+      - path: _test\.go$
+        text: unused-parameter|context-as-argument
+        linters:
+          - revive
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+
+formatters:
+  enable:
+    - goimports
+    - gci
+  settings:
+    goimports:
+      local-prefixes: [github.com/bjet007]
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/bjet007)
+        - dot
+      no-inline-comments: true
+      no-prefix-comments: true
+      custom-order: true
+      no-lex-order: true

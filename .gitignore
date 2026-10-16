@@ -1,0 +1,6 @@
+CLAUDE.local.md
+CONTEXT.local.md
+dist/
+/brewupdater
+.DS_Store
+coverage.out
