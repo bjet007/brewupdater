@@ -27,3 +27,21 @@ homebrew_casks:
           if OS.mac?
             system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/brewupdater"]
           end
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^(docs|test|ci|build|chore|style|refactor)(\(.+\))?:'
+  groups:
+    - title: Breaking changes
+      regexp: '^\w+(\(.+\))?!:'
+      order: 0
+    - title: Features
+      regexp: '^feat(\(.+\))?:'
+      order: 1
+    - title: Bug fixes
+      regexp: '^fix(\(.+\))?:'
+      order: 2
+    - title: Others
+      order: 999
