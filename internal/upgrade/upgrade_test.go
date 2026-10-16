@@ -49,6 +49,8 @@ type deps struct {
 	upgrader  *mocks.Upgrader
 	selector  *mocks.Selector
 	reporter  *mocks.Reporter
+	// cancel cancels the context Run was called with, as Ctrl-C does.
+	cancel context.CancelFunc
 }
 
 func newDeps(t *testing.T) deps {
@@ -239,6 +241,23 @@ func TestServiceRun(t *testing.T) {
 			wantErrIs:  []error{errUpgrade, errBrew},
 			wantErrMsg: "re-checking outdated packages",
 		},
+		"interrupted during the formula batch": {
+			opts: upgrade.Options{Favorites: []string{"node"}},
+			setup: func(d deps) {
+				d.lists(false, allOutdated)
+				d.selector.EXPECT().Select(mock.Anything, fullPlan).Return([]plan.Package{node, firefox}, nil).Once()
+				d.upgrader.EXPECT().Upgrade(mock.Anything, plan.KindFormula, []string{"node"}, false).
+					RunAndReturn(func(context.Context, plan.Kind, []string, bool) error {
+						d.cancel()
+						return errUpgrade
+					}).Once()
+				d.upgrades(plan.KindCask, []string{"firefox"}, false, context.Canceled)
+				d.lister.EXPECT().Outdated(mock.MatchedBy(func(ctx context.Context) bool { return ctx.Err() == nil }), false).
+					Return([]plan.Package{node, firefox}, nil).Once()
+				d.summarizes(upgrade.Result{Failed: []plan.Package{node, firefox}})
+			},
+			want: upgrade.Result{Failed: []plan.Package{node, firefox}},
+		},
 		"yes": {
 			opts: upgrade.Options{Favorites: []string{"node"}, Yes: true},
 			setup: func(d deps) {
@@ -272,10 +291,13 @@ func TestServiceRun(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(t.Context())
+			defer cancel()
 			d := newDeps(t)
+			d.cancel = cancel
 			tc.setup(d)
 
-			got, err := d.service().Run(t.Context(), tc.opts)
+			got, err := d.service().Run(ctx, tc.opts)
 
 			if len(tc.wantErrIs) == 0 {
 				require.NoError(t, err)

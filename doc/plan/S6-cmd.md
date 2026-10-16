@@ -21,6 +21,8 @@ func Execute() int // exit code; cmd/brewupdater/main.go does os.Exit(Execute())
 - Before starting the TUI, check that stdin and stdout are a TTY. Without one and without `--list`/`--json`/`-y`, return an error suggesting `--list` or `-y`.
 - `--list` and `--json` call `Service.Plan`, write to stdout, and report `UnknownFavorites` as warnings on stderr. The JSON array contains `{name, kind, installed, latest, pinned, favorite}`.
 - Exit codes: 0 on success or abort (print "Cancelled"), including Ctrl-C during the refresh, which `reporter.Refreshing` returns as `context.Canceled`; 1 if any upgrade failed or any other error occurred.
+- Ctrl-C during `brew upgrade` cancels the context (`fang.WithNotifySignal`): the remaining batch is skipped, the re-check ignores the cancel (`context.WithoutCancel` in `upgrade.Run`), and the summary decides the exit code, so an interrupted upgrade exits 1.
+- An explicit `--config` path must exist; only the default location may be missing.
 - Version: if `version` is empty, use `debug.ReadBuildInfo().Main.Version`, then fall back to `"dev"`.
 
 ## Test cases
