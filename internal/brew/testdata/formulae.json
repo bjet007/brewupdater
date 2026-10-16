@@ -1,0 +1,23 @@
+{
+  "formulae": [
+    {
+      "name": "node",
+      "installed_versions": [
+        "24.1.0"
+      ],
+      "current_version": "24.3.0",
+      "pinned": false,
+      "pinned_version": null
+    },
+    {
+      "name": "postgresql@16",
+      "installed_versions": [
+        "16.4"
+      ],
+      "current_version": "16.6",
+      "pinned": true,
+      "pinned_version": "16.4"
+    }
+  ],
+  "casks": []
+}

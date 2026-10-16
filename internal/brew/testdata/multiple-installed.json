@@ -1,0 +1,15 @@
+{
+  "formulae": [
+    {
+      "name": "python@3.13",
+      "installed_versions": [
+        "3.13.0",
+        "3.13.1"
+      ],
+      "current_version": "3.13.2",
+      "pinned": false,
+      "pinned_version": null
+    }
+  ],
+  "casks": []
+}

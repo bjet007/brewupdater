@@ -1,0 +1,14 @@
+{
+  "formulae": [],
+  "casks": [
+    {
+      "name": "sourcetree",
+      "installed_versions": [
+        "4.2.7,263"
+      ],
+      "current_version": "4.2.19,317",
+      "pinned": false,
+      "pinned_version": null
+    }
+  ]
+}
