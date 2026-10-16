@@ -1,0 +1,6 @@
+all: false
+dir: "{{.InterfaceDir}}/mocks"
+pkgname: mocks
+filename: "{{.InterfaceName}}.go"
+structname: "{{.InterfaceName}}"
+packages: {}
