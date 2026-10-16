@@ -88,6 +88,7 @@ func (s Service) Plan(ctx context.Context, o Options) (plan.Plan, error) {
 // Run builds the plan, gets a selection, upgrades the formulae then the casks, and checks what is still outdated.
 // The Selector's error is returned unwrapped, so the caller can tell an abort (checklist.ErrAborted) with errors.Is.
 // A failed upgrade batch is not an error by itself: the packages it left outdated end up in Result.Failed.
+// The re-check ignores cancellation, so an interrupted upgrade still ends with a summary of what is left.
 // If the re-check itself fails, Run returns it joined with the batch errors and does not call Summary.
 func (s Service) Run(ctx context.Context, o Options) (Result, error) {
 	p, err := s.Plan(ctx, o)
@@ -117,7 +118,7 @@ func (s Service) Run(ctx context.Context, o Options) (Result, error) {
 		s.upgradeBatch(ctx, plan.KindCask, selection, o.Greedy),
 	)
 
-	still, err := s.Lister.Outdated(ctx, o.Greedy)
+	still, err := s.Lister.Outdated(context.WithoutCancel(ctx), o.Greedy)
 	if err != nil {
 		return Result{}, errors.Join(upgradeErr, fmt.Errorf("re-checking outdated packages: %w", err))
 	}
