@@ -3,4 +3,11 @@ dir: "{{.InterfaceDir}}/mocks"
 pkgname: mocks
 filename: "{{.InterfaceName}}.go"
 structname: "{{.InterfaceName}}"
-packages: {}
+packages:
+  github.com/bjet007/brewupdater/internal/upgrade:
+    interfaces:
+      Refresher:
+      Lister:
+      Upgrader:
+      Selector:
+      Reporter:

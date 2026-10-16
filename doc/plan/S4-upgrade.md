@@ -51,7 +51,7 @@ The flow inside `Run`:
 1. `Plan`: refresh if `AutoUpdate`, then `Outdated`, then `plan.Build`.
 2. Select: `Selector.Select`, or `Preselected()` when `Yes`.
 3. Upgrade the formulae, then the casks. Keep both errors; don't stop after the first.
-4. Re-check with `Outdated`. Selected packages still outdated go in `Failed`, the rest in `Upgraded`.
+4. Re-check with `Outdated`. Selected packages still outdated go in `Failed`, the rest in `Upgraded`. The re-check is the authority: batch errors are dropped when it succeeds (brew's output was already shown live). If it fails, `Run` returns it joined with the batch errors and skips `Summary`.
 5. Call `Reporter.Summary`.
 
 ## Test cases (`TestServiceRun`, mock-driven)
