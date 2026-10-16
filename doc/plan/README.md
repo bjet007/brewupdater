@@ -96,6 +96,12 @@ brewupdater/
 
 **Reference implementation**: `/Users/bjean/Documents/workspace/ssa/orbit-determination/tools/bromote` — same stack (Charm v2 under `charm.land/...`, cobra + fang, mockery v3, testify, `go.yaml.in/yaml/v3`). Copy patterns from it; don't import it.
 
+## Follow-ups
+
+Out of scope for the numbered sessions; pick up after S7.
+
+- **Checklist viewport** (found in the S5 review): the checklist draws every row, so with more outdated packages than terminal rows the inline renderer drops the top lines (title, favorites, starting cursor). Handle `tea.WindowSizeMsg` and draw only a window of rows around the cursor.
+
 ---
 
 ## Conventions

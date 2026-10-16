@@ -1,0 +1,7 @@
+Select the packages to upgrade
+
+  [ ] firefox  [cask]     128.0 → 131.0.2
+> [x] jq       [formula]  1.6   → 1.7.1
+  ·   wget     [formula]  1.21  → 1.24.5  (pinned)
+
+space toggle · a all · ↑/↓ move · enter upgrade · esc cancel
