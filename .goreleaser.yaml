@@ -21,12 +21,13 @@ homebrew_casks:
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     homepage: https://github.com/bjet007/brewupdater
     description: Pick which outdated Homebrew packages to upgrade, favorites first
-    hooks:
-      post:
-        install: |
-          if OS.mac?
-            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/brewupdater"]
-          end
+    # Not hooks.post.install: GoReleaser renders it as a postflight block, which Homebrew deprecated for postflight_steps.
+    custom_block: |
+      postflight_steps do
+        on_macos do
+          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ "{{" }}staged_path{{ "}}" }}/brewupdater"]
+        end
+      end
 
 changelog:
   sort: asc
