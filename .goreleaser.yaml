@@ -1,0 +1,29 @@
+version: 2
+
+builds:
+  - main: ./cmd/brewupdater
+    env: [CGO_ENABLED=0]
+    goos: [darwin, linux]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w -X github.com/bjet007/brewupdater/internal/cmd/brewupdater.version={{.Version}}
+
+archives:
+  - formats: [tar.gz]
+
+checksum:
+  name_template: checksums.txt
+
+homebrew_casks:
+  - repository:
+      owner: bjet007
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    homepage: https://github.com/bjet007/brewupdater
+    description: Pick which outdated Homebrew packages to upgrade, favorites first
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/brewupdater"]
+          end
