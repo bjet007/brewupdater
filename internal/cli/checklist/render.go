@@ -1,6 +1,7 @@
 package checklist
 
 import (
+	"fmt"
 	"strings"
 
 	"charm.land/lipgloss/v2"
@@ -49,14 +50,20 @@ func measure(rows []plan.Row) widths {
 func (m *model) render() string {
 	w := measure(m.rows)
 
+	end := m.offset + m.windowSize()
 	lines := []string{styleTitle.Render(title), ""}
-	for i, r := range m.rows {
+	for i := m.offset; i < end; i++ {
 		if i == m.favorites && m.favorites > 0 {
 			lines = append(lines, m.separator(w))
 		}
-		lines = append(lines, m.renderRow(i, r, w))
+		lines = append(lines, m.renderRow(i, m.rows[i], w))
 	}
-	lines = append(lines, "", styleMuted.Render(helpText))
+
+	help := helpText
+	if end-m.offset < len(m.rows) {
+		help = fmt.Sprintf("%d-%d of %d · ", m.offset+1, end, len(m.rows)) + help
+	}
+	lines = append(lines, "", styleMuted.Render(help))
 	return strings.Join(lines, "\n")
 }
 
