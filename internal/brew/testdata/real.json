@@ -1,0 +1,33 @@
+{
+  "formulae": [
+    {
+      "name": "abseil",
+      "installed_versions": [
+        "20250814.0_1"
+      ],
+      "current_version": "20260817.0",
+      "pinned": false,
+      "pinned_version": null
+    },
+    {
+      "name": "atlassian/acli/acli",
+      "installed_versions": [
+        "1.3.36-stable"
+      ],
+      "current_version": "1.3.39-stable",
+      "pinned": false,
+      "pinned_version": null
+    }
+  ],
+  "casks": [
+    {
+      "name": "sourcetree",
+      "installed_versions": [
+        "4.2.7,263"
+      ],
+      "current_version": "4.2.19,317",
+      "pinned": false,
+      "pinned_version": null
+    }
+  ]
+}
