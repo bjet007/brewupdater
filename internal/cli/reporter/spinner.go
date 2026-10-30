@@ -10,7 +10,8 @@ import (
 )
 
 // spin runs fn in the background while a spinner animates, and returns fn's error once both are done.
-// The program does not read input, so Ctrl-C reaches it as SIGINT, cancels fn and returns context.Canceled.
+// The program reads input so the terminal's replies to Bubble Tea's capability queries are consumed instead of echoed.
+// Ctrl-C, as a key or as SIGINT, cancels fn and returns context.Canceled.
 func (r Reporter) spin(ctx context.Context, fn func(context.Context) error, opts ...tea.ProgramOption) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -22,7 +23,7 @@ func (r Reporter) spin(ctx context.Context, fn func(context.Context) error, opts
 		fnErr = fn(ctx)
 	}()
 
-	opts = append([]tea.ProgramOption{tea.WithContext(ctx), tea.WithOutput(r.out), tea.WithInput(nil)}, opts...)
+	opts = append([]tea.ProgramOption{tea.WithContext(ctx), tea.WithOutput(r.out)}, opts...)
 	_, err := tea.NewProgram(newSpinnerModel(done), opts...).Run()
 	cancel()
 	<-done
@@ -56,6 +57,10 @@ func (m *spinnerModel) Init() tea.Cmd {
 
 func (m *spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.KeyPressMsg:
+		if msg.String() == "ctrl+c" {
+			return m, tea.Interrupt
+		}
 	case doneMsg:
 		m.finished = true
 		return m, tea.Quit
