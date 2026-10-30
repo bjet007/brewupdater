@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
@@ -102,7 +103,7 @@ func TestSpin(t *testing.T) {
 			err := reporter.SpinWith(context.Background(), &out, func(context.Context) error {
 				called = true
 				return tc.fnErr
-			}, tea.WithoutRenderer(), tea.WithoutSignals())
+			}, tea.WithInput(nil), tea.WithoutRenderer(), tea.WithoutSignals())
 
 			require.ErrorIs(t, err, tc.wantErr)
 			assert.True(t, called)
@@ -111,15 +112,33 @@ func TestSpin(t *testing.T) {
 }
 
 func TestSpinInterruptCancelsFn(t *testing.T) {
-	var out bytes.Buffer
-	interrupt := tea.WithFilter(func(tea.Model, tea.Msg) tea.Msg { return tea.InterruptMsg{} })
+	tests := map[string]struct {
+		opts []tea.ProgramOption
+	}{
+		"interrupt signal": {
+			opts: []tea.ProgramOption{
+				tea.WithInput(nil),
+				tea.WithFilter(func(tea.Model, tea.Msg) tea.Msg { return tea.InterruptMsg{} }),
+			},
+		},
+		"ctrl+c key": {
+			opts: []tea.ProgramOption{tea.WithInput(strings.NewReader("\x03"))},
+		},
+	}
 
-	err := reporter.SpinWith(context.Background(), &out, func(ctx context.Context) error {
-		<-ctx.Done()
-		return ctx.Err()
-	}, tea.WithoutRenderer(), tea.WithoutSignals(), interrupt)
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			var out bytes.Buffer
+			opts := append([]tea.ProgramOption{tea.WithoutRenderer(), tea.WithoutSignals()}, tc.opts...)
 
-	require.ErrorIs(t, err, context.Canceled)
+			err := reporter.SpinWith(context.Background(), &out, func(ctx context.Context) error {
+				<-ctx.Done()
+				return ctx.Err()
+			}, opts...)
+
+			require.ErrorIs(t, err, context.Canceled)
+		})
+	}
 }
 
 func TestSpinCancelsFnWhenContextIsCancelled(t *testing.T) {
@@ -130,7 +149,7 @@ func TestSpinCancelsFnWhenContextIsCancelled(t *testing.T) {
 		cancel()
 		<-ctx.Done()
 		return ctx.Err()
-	}, tea.WithoutRenderer(), tea.WithoutSignals())
+	}, tea.WithInput(nil), tea.WithoutRenderer(), tea.WithoutSignals())
 
 	require.ErrorIs(t, err, context.Canceled)
 }
